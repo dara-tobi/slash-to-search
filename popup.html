@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <style type="text/css">
+            div.container {
+                width: 220px;
+                padding: 0 0 0 15px;
+                min-height: 50px;
+                margin: -8px 8px 0 -8px;
+            }
+
+            label.switch {
+                float: right;
+            }
+
+            p {
+                margin: 20px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <p>Enabled on this website  
+                <label class="switch">
+                    <input type="checkbox" id="optionEnabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </p>
+            <p>Automatically jump to searchbox
+                <label class="switch">
+                    <input type="checkbox" id="optionAutofocus">
+                    <span class="slider"></span>
+                </label>
+            </p>
+        </div>
+    </body>
+    <script type="text/javascript" src="popup.js"></script>
+</html>

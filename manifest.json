@@ -1,19 +1,23 @@
 // Slash to search
 {
-   "content_scripts": [{
-        "js": [ "index.js" ],
+    "browser_action": {
+        "default_icon": "images/slash_to_search.png",
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [{
+        "js": [ "index.js", "popup.js" ],
         "matches": [ "<all_urls>" ],
         "run_at": "document_start"
-   }],
-   "description": "Jump to search box by pressing forward slash.",
+    }],
+    "description": "Jump to search box by pressing forward slash.",
     "icons": {
       "48": "images/slash_to_search.png"
-   },
-   "manifest_version": 2,
-   "name": "Slash to search",
-   "offline_enabled": true,
-   "permissions": [ "<all_urls>" ],
-   "short_name": "Slash to search",
-   "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "0.0.1"
+    },
+    "manifest_version": 2,
+    "name": "Slash to search",
+    "offline_enabled": true,
+    "permissions": [ "<all_urls>", "tabs", "storage" ],
+    "short_name": "Slash to search",
+    "update_url": "https://clients2.google.com/service/update2/crx",
+    "version": "0.0.1"
 }
