@@ -38,6 +38,16 @@
 
 
   function setFocus() {
-    document.querySelector('input[type=text]').focus();
+
+    var searchBox = document.querySelector('input[type=text]');
+    var searchBoxValue = searchBox.value;
+    var searchBoxValueLength = searchBoxValue.length || 0;
+
+    // Jump to search box
+    searchBox.focus();
+
+    // Ensure the cursor is at the end of the text
+    searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+
   }  
 })();
