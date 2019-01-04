@@ -12,6 +12,6 @@
 var searchBoxTypesConfig = {
 
   searchInput1: ['medium.com'],
-  textInput2: ['mail.google.com']
+  textInput2: ['mail.google.com', 'www.konga.com']
 
 };
