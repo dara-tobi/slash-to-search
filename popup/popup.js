@@ -33,7 +33,7 @@
     optionEnabled.addEventListener('change', updateOptions);
   }
 
-  function updateOptions () {
+  function updateOptions() {
 
     if (optionEnabled && optionEnabled.checked) {
       var isEnabled = true;
@@ -98,5 +98,30 @@
         });
       });
     });
+
+    appendReloadButton();
+  }
+
+  function appendReloadButton() {
+
+    var reloadButton = document.querySelector('#reload-button');
+
+    if (!reloadButton) {
+
+      reloadButton = document.createElement('button');
+      reloadButton.textContent = 'Reload to apply changes';
+      reloadButton.id = 'reload-button';
+      reloadButton.addEventListener('click', function() {
+
+        chrome.tabs.reload();
+
+        window.close();
+      });
+
+
+      var containerDiv = document.querySelector('.container');
+      containerDiv.appendChild(reloadButton);
+    }
+
   }
 })();
