@@ -1,4 +1,3 @@
-// Slash to search
 {
    "background": {
       "scripts": [ "scripts/background.js" ]
