@@ -3,6 +3,28 @@
   var optionEnabled = document.querySelector('#optionEnabled');
   var optionAutofocus = document.querySelector('#optionAutofocus');
 
+
+  chrome.tabs.query({'active': true, 'currentWindow': true}, function(tab) {
+    var url = tab[0].url;
+    var domain = url.split('//')[1].split('/')[0];
+
+    chrome.storage.sync.get(['disabledSites', 'autofocusSites'], function(sites) {
+      if (sites) {
+        if (sites.disabledSites && sites.disabledSites.includes(domain)) {
+          optionEnabled.checked = false;
+        } else {
+          optionEnabled.checked = true;
+        }
+
+        if (sites.autofocusSites && sites.autofocusSites.includes(domain)) {
+          optionAutofocus.checked = true;
+        }
+      }
+    });
+  });
+
+
+
   if (optionAutofocus) {
     optionAutofocus.addEventListener('change', updateOptions);
   }
