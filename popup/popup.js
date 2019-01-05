@@ -8,7 +8,7 @@
     var url = tab[0].url;
     var domain = url.split('//')[1].split('/')[0];
 
-    chrome.storage.sync.get(['disabledSites', 'autofocusSites'], function(sites) {
+    chrome.storage.local.get(['disabledSites', 'autofocusSites'], function(sites) {
       if (sites) {
         if (sites.disabledSites && sites.disabledSites.includes(domain)) {
           optionEnabled.checked = false;
@@ -60,7 +60,7 @@
       var domain = url.split('//')[1].split('/')[0];
 
 
-      chrome.storage.sync.get(['disabledSites', 'autofocusSites'], function(sites) {
+      chrome.storage.local.get(['disabledSites', 'autofocusSites'], function(sites) {
         var disabledSites = [];
         var autofocusSites = [];
 
@@ -90,7 +90,7 @@
         }
 
 
-        chrome.storage.sync.set({
+        chrome.storage.local.set({
           disabledSites: disabledSites,
           autofocusSites: autofocusSites
         }, function() {

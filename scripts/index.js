@@ -7,7 +7,7 @@
       if (request.message === 'pageLoaded') {
         if (pageHasSearchOrTextInputTypes()) {
 
-          chrome.storage.sync.get(['disabledSites', 'autofocusSites'], function(sites) {
+          chrome.storage.local.get(['disabledSites', 'autofocusSites'], function(sites) {
 
             var disabledSites = sites.disabledSites || [];
             var autofocusSites = sites.autofocusSites || [];
