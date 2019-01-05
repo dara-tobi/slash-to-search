@@ -43,14 +43,20 @@
 
     var searchBox = getSearchBox();
 
-    var searchBoxValue = searchBox.value;
-    var searchBoxValueLength = searchBoxValue.length || 0;
+    if (searchBox.outerHTML
+      // Attempt to see if the selected input element is intended for searching
+      && searchBox.outerHTML.toLowerCase().includes('search')
+      ) {
 
-    // Jump to search box
-    searchBox.focus();
+      var searchBoxValue = searchBox.value;
+      var searchBoxValueLength = searchBoxValue.length || 0;
 
-    // Ensure the cursor is at the end of the text
-    searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+      // Jump to search box
+      searchBox.focus();
+
+      // Ensure the cursor is at the end of the text
+      searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+    }
 
   }
 
