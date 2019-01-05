@@ -21,7 +21,7 @@
               // slash is enabled for this domain
             }
 
-            if (autofocusSites.includes(domain)) {
+            if (autofocusSites.includes(domain) && isDomainHomepage()) {
               // auto is on for this domain, setting focus
               setFocus();
             }
@@ -78,8 +78,7 @@
 
   function getDomain() {
 
-    var url = window.location.href;
-    return url.split('//')[1].split('/')[0];
+    return getUrlParts()[0];
 
   }
 
@@ -100,4 +99,20 @@
     return 'textInput1';
 
   }
+
+  function isDomainHomepage() {
+
+    return !getUrlParts()[1];
+
+  }
+
+  function getUrlParts() {
+
+    var url = window.location.href;
+    var urlParts = url.split('//')[1].split('/');
+
+    return urlParts;
+
+  }
+
 })();
