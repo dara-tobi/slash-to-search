@@ -27,8 +27,16 @@
             }
 
             // add slash key shortcut, regardless of autofocus
-            document.addEventListener('keyup', e => {
+            document.addEventListener('keydown', e => {
+
               if (e.key === '/') {
+
+                if (document.activeElement.nodeName.toLowerCase() !== 'input') {
+
+                  // prevent slash from being added to the search box during the jump
+                  e.preventDefault();
+                }
+
                 // '/' clicked, setting focus
                 setFocus();
               }
