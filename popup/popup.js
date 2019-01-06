@@ -72,7 +72,7 @@
           autofocusSites = sites.autofocusSites;
         }
 
-        if (!isEnabled) {
+        if (!isEnabled && !disabledSites.includes(domain)) {
           // disabling slash to search for domain
           disabledSites.push(domain);
         } else {

@@ -18,7 +18,7 @@ var searchBoxTypesConfig = {
 
 };
 
-var domainsControlledByDelegate = ['www.tunefind.com'];
+var domainsControlledByDelegate = ['www.tunefind.com', 'www.w3schools.com'];
 
 
 /*
@@ -29,6 +29,7 @@ var domainsControlledByDelegate = ['www.tunefind.com'];
 */
 var delegateTypesConfig = {
 
-  buttonDelegate4: ['www.tunefind.com']
+  buttonDelegate4: ['www.tunefind.com'],
+  aDelegate9: ['www.w3schools.com']
 
 };
