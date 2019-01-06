@@ -41,21 +41,29 @@
 
   function setFocus() {
 
-    var searchBox = getSearchBox();
+    if (isControlledByDelegate()) {
 
-    if (searchBox.outerHTML
-      // Attempt to see if the selected input element is intended for searching
-      && searchBox.outerHTML.toLowerCase().includes('search')
-      ) {
+      var searchDelegate = getSearchDelegate();
+      searchDelegate.click();
 
-      var searchBoxValue = searchBox.value;
-      var searchBoxValueLength = searchBoxValue.length || 0;
+    } else {
 
-      // Jump to search box
-      searchBox.focus();
+      var searchBox = getSearchBox();
 
-      // Ensure the cursor is at the end of the text
-      searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+      if (searchBox.outerHTML
+        // Attempt to see if the selected input element is intended for searching
+        && searchBox.outerHTML.toLowerCase().includes('search')
+        ) {
+
+        var searchBoxValue = searchBox.value;
+        var searchBoxValueLength = searchBoxValue.length || 0;
+
+        // Jump to search box
+        searchBox.focus();
+
+        // Ensure the cursor is at the end of the text
+        searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+      }
     }
 
   }
@@ -119,6 +127,39 @@
 
     return urlParts;
 
+  }
+
+  function isControlledByDelegate() {
+
+    return domainsControlledByDelegate.includes(getDomain());
+
+  }
+
+  function getSearchDelegate() {
+
+    var delegateTypeParts = getSearchDelegateType().split('Delegate');
+
+    var delegateType = delegateTypeParts[0];
+    var delegateIndex = delegateTypeParts[1];
+
+    return document.querySelectorAll(delegateType)[ delegateIndex - 1 ];
+
+  }
+
+  function getSearchDelegateType() {
+
+    var domain = getDomain();
+    var delegateTypes = delegateTypesConfig;
+
+    for (delegateType in delegateTypes) {
+
+      if (delegateTypes[delegateType].includes(domain)) {
+
+        return delegateType;
+      }
+    }
+
+    return 'buttonDelegate1';
   }
 
 })();
