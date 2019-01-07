@@ -13,7 +13,7 @@
 */
 var searchBoxTypesConfig = {
 
-  searchInput1: ['medium.com'],
+  searchInput1: ['medium.com', 'developer.mozilla.org'],
   textInput2: ['mail.google.com', 'www.konga.com']
 
 };

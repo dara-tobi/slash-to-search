@@ -29,16 +29,25 @@
             // add slash key shortcut, regardless of autofocus
             document.addEventListener('keydown', e => {
 
-              if (e.key === '/') {
+              var activeElement = document.activeElement;
+              var nodeName = activeElement.nodeName.toLowerCase();
 
-                if (document.activeElement.nodeName.toLowerCase() !== 'input') {
+
+              // Only set focus if the user isn't already inputting text
+              if (
+                activeElement !== 'textarea'
+                && activeElement !== 'input'
+                && activeElement.contentEditable !== true
+              ) {
+
+                if (e.key === '/') {
 
                   // prevent slash from being added to the search box during the jump
                   e.preventDefault();
-                }
 
-                // '/' clicked, setting focus
-                setFocus();
+                  // '/' clicked, setting focus
+                  setFocus();
+                }
               }
             });
           });
@@ -58,7 +67,7 @@
 
       var searchBox = getSearchBox();
 
-      if (searchBox.outerHTML
+      if (searchBox && searchBox.outerHTML
         // Attempt to see if the selected input element is intended for searching
         && searchBox.outerHTML.toLowerCase().includes('search')
         ) {
@@ -71,6 +80,8 @@
 
         // Ensure the cursor is at the end of the text
         searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+      } else {
+        console.log('Slash to search does not yet support this site');
       }
     }
 
