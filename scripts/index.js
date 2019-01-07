@@ -38,6 +38,7 @@
                 activeElement !== 'textarea'
                 && activeElement !== 'input'
                 && activeElement.contentEditable !== true
+                && activeElement.contentEditable !== 'true'
               ) {
 
                 if (e.key === '/') {
