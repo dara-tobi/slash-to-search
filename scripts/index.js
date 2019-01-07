@@ -28,9 +28,23 @@
 
             // add slash key shortcut, regardless of autofocus
             document.addEventListener('keyup', e => {
-              if (e.key === '/') {
-                // '/' clicked, setting focus
-                setFocus();
+
+              var activeElement = document.activeElement;
+              var nodeName = activeElement.nodeName.toLowerCase();
+
+
+              // Only set focus if the user isn't already inputting text
+              if (
+                activeElement !== 'textarea'
+                && activeElement !== 'input'
+                && activeElement.contentEditable !== true
+              ) {
+
+                if (e.key === '/') {
+
+                  // '/' clicked, setting focus
+                  setFocus();
+                }
               }
             });
           });
