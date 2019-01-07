@@ -50,7 +50,7 @@
 
       var searchBox = getSearchBox();
 
-      if (searchBox.outerHTML
+      if (searchBox && searchBox.outerHTML
         // Attempt to see if the selected input element is intended for searching
         && searchBox.outerHTML.toLowerCase().includes('search')
         ) {
@@ -63,6 +63,8 @@
 
         // Ensure the cursor is at the end of the text
         searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+      } else {
+        console.log('Slash to search does not yet support this site');
       }
     }
 
