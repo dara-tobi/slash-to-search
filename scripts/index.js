@@ -35,8 +35,8 @@
 
               // Only set focus if the user isn't already inputting text
               if (
-                activeElement !== 'textarea'
-                && activeElement !== 'input'
+                nodeName !== 'textarea'
+                && nodeName !== 'input'
                 && activeElement.contentEditable !== true
                 && activeElement.contentEditable !== 'true'
               ) {
