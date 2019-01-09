@@ -2,13 +2,16 @@
 
   var optionEnabled = document.querySelector('#optionEnabled');
   var optionAutofocus = document.querySelector('#optionAutofocus');
+  var optionClearPrevious = document.querySelector('#optionClearPrevious');
 
 
   chrome.tabs.query({'active': true, 'currentWindow': true}, function(tab) {
     var url = tab[0].url;
     var domain = url.split('//')[1].split('/')[0];
 
-    chrome.storage.local.get(['disabledSites', 'autofocusSites'], function(sites) {
+
+    chrome.storage.local.get(['disabledSites', 'autofocusSites', 'clearPreviousSites'], function(sites) {
+
       if (sites) {
         if (sites.disabledSites && sites.disabledSites.includes(domain)) {
           optionEnabled.checked = false;
@@ -18,6 +21,10 @@
 
         if (sites.autofocusSites && sites.autofocusSites.includes(domain)) {
           optionAutofocus.checked = true;
+        }
+
+        if (sites.clearPreviousSites && sites.clearPreviousSites.includes(domain)) {
+          optionClearPrevious.checked = true;
         }
       }
     });
@@ -31,6 +38,10 @@
 
   if (optionEnabled) {
     optionEnabled.addEventListener('change', updateOptions);
+  }
+
+  if (optionClearPrevious) {
+    optionClearPrevious.addEventListener('change', updateOptions);
   }
 
   function updateOptions() {
@@ -55,14 +66,23 @@
       // Autofocus is disabled
     }
 
+    if (optionClearPrevious && optionClearPrevious.checked) {
+      var shouldClearPrevious = true;
+
+      // 'Clear previous' is now enabled
+    }
+
+
     chrome.tabs.query({'active': true, 'currentWindow': true}, function(tab) {
       var url = tab[0].url;
       var domain = url.split('//')[1].split('/')[0];
 
 
-      chrome.storage.local.get(['disabledSites', 'autofocusSites'], function(sites) {
+      chrome.storage.local.get(['disabledSites', 'autofocusSites', 'clearPreviousSites'], function(sites) {
+
         var disabledSites = [];
         var autofocusSites = [];
+        var clearPreviousSites = []
 
         if (sites.disabledSites) {
           disabledSites = sites.disabledSites;
@@ -70,6 +90,10 @@
 
         if (sites.autofocusSites) {
           autofocusSites = sites.autofocusSites;
+        }
+
+        if (sites.clearPreviousSites) {
+          clearPreviousSites = sites.clearPreviousSites;
         }
 
         if (!isEnabled && !disabledSites.includes(domain)) {
@@ -89,10 +113,19 @@
           autofocusSites.splice(domainIndex, 1);
         }
 
+        if (shouldClearPrevious && !clearPreviousSites.includes(domain)) {
+          // enabling autofocus for domain
+          clearPreviousSites.push(domain);
+        } else {
+          // disabling autofocus for domain
+          clearPreviousSites.splice(domainIndex, 1);
+        }
+
 
         chrome.storage.local.set({
           disabledSites: disabledSites,
-          autofocusSites: autofocusSites
+          autofocusSites: autofocusSites,
+          clearPreviousSites: clearPreviousSites
         }, function() {
 
         });

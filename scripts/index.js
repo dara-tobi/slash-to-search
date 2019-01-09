@@ -7,10 +7,11 @@
       if (request.message === 'pageLoaded') {
         if (pageHasSearchOrTextInputTypes()) {
 
-          chrome.storage.local.get(['disabledSites', 'autofocusSites'], function(sites) {
+          chrome.storage.local.get(['disabledSites', 'autofocusSites', 'clearPreviousSites'], function(sites) {
 
             var disabledSites = sites.disabledSites || [];
             var autofocusSites = sites.autofocusSites || [];
+            var clearPreviousSites = sites.clearPreviousSites || [];
 
             var domain = getDomain();
 
@@ -24,6 +25,10 @@
             if (autofocusSites.includes(domain) && isDomainHomepage()) {
               // auto is on for this domain, setting focus
               setFocus();
+            }
+
+            if (clearPreviousSites.includes(domain)) {
+              var shouldClearPreviousText = true;
             }
 
             // add slash key shortcut, regardless of autofocus
@@ -47,7 +52,7 @@
                   e.preventDefault();
 
                   // '/' clicked, setting focus
-                  setFocus();
+                  setFocus(shouldClearPreviousText);
                 }
               }
             });
@@ -57,7 +62,7 @@
   });
 
 
-  function setFocus() {
+  function setFocus(shouldClearPreviousText = null) {
 
     if (isControlledByDelegate()) {
 
@@ -72,6 +77,11 @@
         // Attempt to see if the selected input element is intended for searching
         && searchBox.outerHTML.toLowerCase().includes('search')
         ) {
+
+        if (shouldClearPreviousText) {
+          searchBox.value = '';
+        }
+
 
         var searchBoxValue = searchBox.value;
         var searchBoxValueLength = searchBoxValue.length || 0;
