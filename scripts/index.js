@@ -113,7 +113,7 @@
     var typeName = boxTypeParts[0];
     var typeIndex = boxTypeParts[1];
 
-    return document.querySelectorAll(`input[type=${typeName}]`)[ typeIndex - 1 ];
+    return document.querySelectorAll(`input[type=${typeName}]`)[ typeIndex ];
 
   }
 
@@ -137,7 +137,7 @@
       }
     }
 
-    return 'textInput1';
+    return 'textInput0';
 
   }
 
@@ -169,7 +169,7 @@
     var delegateType = delegateTypeParts[0];
     var delegateIndex = delegateTypeParts[1];
 
-    return document.querySelectorAll(delegateType)[ delegateIndex - 1 ];
+    return document.querySelectorAll(delegateType)[ delegateIndex ];
 
   }
 
@@ -186,7 +186,7 @@
       }
     }
 
-    return 'buttonDelegate1';
+    return 'buttonDelegate0';
   }
 
 })();

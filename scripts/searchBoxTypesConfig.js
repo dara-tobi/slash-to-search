@@ -4,7 +4,7 @@
   and the index location (document.querySelectoryAll()[1] or document.querySelectoryAll()[2] or [3] etc)
   of the input, where the search box can be found.
 
-  Index here isn't zero-based, i.e. if querySelector returns 0 as the index, the index indicated here is 1.
+  Index here is zero-based, i.e. if querySelector returns 0 as the index, the index indicated here is 0.
 
   Indicate the search box type and index in the format ${type}Input${index}.
 
@@ -13,8 +13,8 @@
 */
 var searchBoxTypesConfig = {
 
-  searchInput1: ['medium.com', 'developer.mozilla.org', 'www.npmjs.com'],
-  textInput2: ['mail.google.com', 'www.konga.com']
+  searchInput0: ['medium.com', 'developer.mozilla.org', 'www.npmjs.com'],
+  textInput1: ['mail.google.com', 'www.konga.com']
 
 };
 
@@ -29,7 +29,7 @@ var domainsControlledByDelegate = ['www.tunefind.com', 'www.w3schools.com'];
 */
 var delegateTypesConfig = {
 
-  buttonDelegate4: ['www.tunefind.com'],
-  aDelegate9: ['www.w3schools.com']
+  buttonDelegate3: ['www.tunefind.com'],
+  aDelegate8: ['www.w3schools.com']
 
 };
