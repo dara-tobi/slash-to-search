@@ -59,6 +59,37 @@
   });
 
 
+  chrome.runtime.onMessage.addListener(function (request) {
+
+    if (request.message === 'configureActiveInput') {
+
+      var activeInput = document.activeElement;
+      var inputType = activeInput.type;
+      var matchingInputTypes = Array.from(document.querySelectorAll(`input[type=${inputType}]`));
+      var inputIndex = matchingInputTypes.indexOf(activeInput);
+      var searchConfigText = `${inputType}Input${inputIndex}`;
+      var domain = getDomain();
+
+
+      chrome.storage.sync.get('configs', function (res) {
+
+        var configs = res.configs;
+
+        if (!configs) {
+          configs = {};
+        }
+
+        if (!configs[domain]) {
+          configs[domain] = searchConfigText;
+        }
+
+        chrome.storage.sync.set({configs: configs}, function() {});
+
+      });
+    }
+  });
+
+
   function setFocus(shouldClearPreviousText = null) {
 
     if (isControlledByDelegate()) {
@@ -68,29 +99,43 @@
 
     } else {
 
-      var searchBox = getSearchBox();
+      var domain = getDomain();
 
-      if (searchBox && searchBox.outerHTML
-        // Attempt to see if the selected input element is intended for searching
-        && searchBox.outerHTML.toLowerCase().includes('search')
-        ) {
+      chrome.storage.sync.get('configs', function (res) {
 
-        if (shouldClearPreviousText) {
-          searchBox.value = '';
+        if (res.configs) {
+          if (res.configs[domain]) {
+            var searchBox = getSearchBox(res.configs[domain]);
+          }
         }
 
+        if (!searchBox) {
+          searchBox = getSearchBox();
+        }
 
-        var searchBoxValue = searchBox.value;
-        var searchBoxValueLength = searchBoxValue.length || 0;
+        if (searchBox && searchBox.outerHTML
+          // Attempt to see if the selected input element is intended for searching
+          && searchBox.outerHTML.toLowerCase().includes('search')
+          ) {
 
-        // Jump to search box
-        searchBox.focus();
+          if (shouldClearPreviousText) {
+            searchBox.value = '';
+          }
 
-        // Ensure the cursor is at the end of the text
-        searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
-      } else {
-        console.log('Slash to search does not yet support this site');
-      }
+
+          var searchBoxValue = searchBox.value;
+          var searchBoxValueLength = searchBoxValue.length || 0;
+
+          // Jump to search box
+          searchBox.focus();
+
+          // Ensure the cursor is at the end of the text
+          searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+        } else {
+          console.log('Slash to search is not yet configured for this site');
+        }
+
+      });
     }
 
   }
@@ -105,9 +150,11 @@
     return false;
   }
 
-  function getSearchBox() {
+  function getSearchBox(searchBoxType = null) {
 
-    var searchBoxType = getSearchBoxType();
+    if (!searchBoxType) {
+      searchBoxType = getSearchBoxType();
+    }
 
     var boxTypeParts = searchBoxType.split('Input');
     var typeName = boxTypeParts[0];

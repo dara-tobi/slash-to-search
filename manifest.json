@@ -18,7 +18,7 @@
     "manifest_version": 2,
     "name": "Slash to search",
     "offline_enabled": true,
-    "permissions": [ "activeTab", "storage" ],
+    "permissions": [ "activeTab", "storage", "contextMenus" ],
     "short_name": "Slash to search",
     "update_url": "https://clients2.google.com/service/update2/crx",
     "version": "0.0.3.0"
