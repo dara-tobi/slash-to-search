@@ -61,13 +61,15 @@
 
   chrome.runtime.onMessage.addListener(function (request) {
 
-    if (request.message === 'configureActiveInput') {
+    if (request.message === 'configureActiveElement') {
 
-      var activeInput = document.activeElement;
-      var inputType = activeInput.type;
-      var matchingInputTypes = Array.from(document.querySelectorAll(`input[type=${inputType}]`));
-      var inputIndex = matchingInputTypes.indexOf(activeInput);
-      var searchConfigText = `${inputType}Input${inputIndex}`;
+      var activeElement = document.activeElement;
+      var activeElementName = activeElement.nodeName.toLowerCase();
+
+      var matchingElements = Array.from(document.querySelectorAll(activeElementName));
+      var elementIndex = matchingElements.indexOf(activeElement);
+
+      var searchConfigText = `${activeElementName}Element${elementIndex}`;
       var domain = getDomain();
 
 
@@ -79,7 +81,7 @@
           configs = {};
         }
 
-        if (!configs[domain]) {
+        if (!configs[domain] || configs[domain] !== searchConfigText) {
           configs[domain] = searchConfigText;
         }
 
@@ -92,51 +94,53 @@
 
   function setFocus(shouldClearPreviousText = null) {
 
-    if (isControlledByDelegate()) {
+    var domain = getDomain();
 
-      var searchDelegate = getSearchDelegate();
-      searchDelegate.click();
+    chrome.storage.sync.get('configs', function (res) {
 
-    } else {
+      if (res.configs) {
+        if (res.configs[domain]) {
 
-      var domain = getDomain();
-
-      chrome.storage.sync.get('configs', function (res) {
-
-        if (res.configs) {
-          if (res.configs[domain]) {
-            var searchBox = getSearchBox(res.configs[domain]);
-          }
+          var searchElement = getSearchElement(res.configs[domain]);
         }
 
-        if (!searchBox) {
-          searchBox = getSearchBox();
-        }
+      }
 
-        if (searchBox && searchBox.outerHTML
-          // Attempt to see if the selected input element is intended for searching
-          && searchBox.outerHTML.toLowerCase().includes('search')
-          ) {
+      if (!searchElement) {
+        var searchElement = guessSearchElement();
+      }
+
+      if (
+        searchElement && searchElement.outerHTML
+        // Attempt to see if the selected input element is intended for searching
+        && searchElement.outerHTML.toLowerCase().includes('search')
+      ) {
+
+        if (searchElement.nodeName.toLowerCase() === 'input') {
 
           if (shouldClearPreviousText) {
-            searchBox.value = '';
+            searchElement.value = '';
           }
 
 
-          var searchBoxValue = searchBox.value;
+          var searchBoxValue = searchElement.value;
           var searchBoxValueLength = searchBoxValue.length || 0;
 
           // Jump to search box
-          searchBox.focus();
+          searchElement.focus();
 
           // Ensure the cursor is at the end of the text
-          searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+          searchElement.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+
         } else {
-          console.log('Slash to search is not yet configured for this site');
+          searchElement.click();
         }
 
-      });
-    }
+      } else {
+        console.log('Slash to search is not yet configured for this site');
+      }
+
+    });
 
   }
 
@@ -150,41 +154,19 @@
     return false;
   }
 
-  function getSearchBox(searchBoxType = null) {
+  function getSearchElement(config) {
 
-    if (!searchBoxType) {
-      searchBoxType = getSearchBoxType();
-    }
+    var configParts = config.split('Element');
+    var elementName = configParts[0];
+    var elementIndex = configParts[1];
 
-    var boxTypeParts = searchBoxType.split('Input');
-    var typeName = boxTypeParts[0];
-    var typeIndex = boxTypeParts[1];
-
-    return document.querySelectorAll(`input[type=${typeName}]`)[ typeIndex ];
+    return document.querySelectorAll(elementName)[ elementIndex ];
 
   }
 
   function getDomain() {
 
     return getUrlParts()[0];
-
-  }
-
-  function getSearchBoxType() {
-
-    var domain = getDomain();
-
-    var searchBoxTypes = searchBoxTypesConfig;
-
-    for (boxType in searchBoxTypes) {
-
-      if (searchBoxTypes[boxType].includes(domain)) {
-
-        return boxType;
-      }
-    }
-
-    return 'textInput0';
 
   }
 
@@ -203,37 +185,16 @@
 
   }
 
-  function isControlledByDelegate() {
+  function guessSearchElement() {
 
-    return domainsControlledByDelegate.includes(getDomain());
+    var searchElement = document.querySelector('input[type=search]');
 
-  }
-
-  function getSearchDelegate() {
-
-    var delegateTypeParts = getSearchDelegateType().split('Delegate');
-
-    var delegateType = delegateTypeParts[0];
-    var delegateIndex = delegateTypeParts[1];
-
-    return document.querySelectorAll(delegateType)[ delegateIndex ];
-
-  }
-
-  function getSearchDelegateType() {
-
-    var domain = getDomain();
-    var delegateTypes = delegateTypesConfig;
-
-    for (delegateType in delegateTypes) {
-
-      if (delegateTypes[delegateType].includes(domain)) {
-
-        return delegateType;
-      }
+    if (!searchElement) {
+      searchElement = document.querySelector('input[type=text]');
     }
 
-    return 'buttonDelegate0';
+    return searchElement;
+
   }
 
 })();
