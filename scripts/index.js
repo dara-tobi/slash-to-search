@@ -62,39 +62,83 @@
   });
 
 
-  function setFocus(shouldClearPreviousText = null) {
+  chrome.runtime.onMessage.addListener(function (request) {
 
-    if (isControlledByDelegate()) {
+    if (request.message === 'configureActiveElement') {
 
-      var searchDelegate = getSearchDelegate();
-      searchDelegate.click();
+      var activeElement = document.activeElement;
+      var activeElementName = activeElement.nodeName.toLowerCase();
 
-    } else {
+      var matchingElements = Array.from(document.querySelectorAll(activeElementName));
+      var elementIndex = matchingElements.indexOf(activeElement);
 
-      var searchBox = getSearchBox();
+      var searchConfigText = `${activeElementName}Element${elementIndex}`;
+      var domain = getDomain();
 
-      if (searchBox && searchBox.outerHTML
-        // Attempt to see if the selected input element is intended for searching
-        && searchBox.outerHTML.toLowerCase().includes('search')
-        ) {
+      var currentPath = getCurrentPath();
+      var pathConfig = domain + currentPath;
 
-        if (shouldClearPreviousText) {
-          searchBox.value = '';
+
+      chrome.storage.local.get('configs', function (res) {
+
+        var configs = res.configs;
+
+        if (!configs) {
+          configs = {};
         }
 
+        if (!configs[pathConfig] || configs[pathConfig] !== searchConfigText) {
+          configs[pathConfig] = searchConfigText;
+        }
 
-        var searchBoxValue = searchBox.value;
-        var searchBoxValueLength = searchBoxValue.length || 0;
+        chrome.storage.local.set({configs: configs}, function() {});
 
-        // Jump to search box
-        searchBox.focus();
-
-        // Ensure the cursor is at the end of the text
-        searchBox.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
-      } else {
-        console.log('Slash to search does not yet support this site');
-      }
+      });
     }
+  });
+
+
+  function setFocus(shouldClearPreviousText = null) {
+
+    chrome.storage.local.get('configs', function (savedConfigs) {
+
+      var searchElement = getSearchElement(savedConfigs);
+
+      if (!searchElement) {
+        var searchElement = guessSearchElement();
+      }
+
+      if (
+        searchElement && searchElement.outerHTML
+        // Attempt to see if the selected input element is intended for searching
+        && searchElement.outerHTML.toLowerCase().includes('search')
+      ) {
+
+        if (searchElement.nodeName.toLowerCase() === 'input') {
+
+          if (shouldClearPreviousText) {
+            searchElement.value = '';
+          }
+
+
+          var searchBoxValue = searchElement.value;
+          var searchBoxValueLength = searchBoxValue.length || 0;
+
+          // Jump to search box
+          searchElement.focus();
+
+          // Ensure the cursor is at the end of the text
+          searchElement.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
+
+        } else {
+          searchElement.click();
+        }
+
+      } else {
+        console.log('Slash to search is not yet configured for this site');
+      }
+
+    });
 
   }
 
@@ -108,39 +152,37 @@
     return false;
   }
 
-  function getSearchBox() {
+  function getSearchElement(savedConfigs) {
 
-    var searchBoxType = getSearchBoxType();
+    var domain = getDomain();
+    var currentPath = domain + getCurrentPath();
 
-    var boxTypeParts = searchBoxType.split('Input');
-    var typeName = boxTypeParts[0];
-    var typeIndex = boxTypeParts[1];
+    if (savedConfigs.configs) {
 
-    return document.querySelectorAll(`input[type=${typeName}]`)[ typeIndex - 1 ];
+      // if path is configured, and we're currently on the path, use path config
+      // if not, use domain config
+      if (savedConfigs.configs[currentPath]) {
+        var config = savedConfigs.configs[currentPath];
+
+      } else if (savedConfigs.configs[domain]) {
+        var config = savedConfigs.configs[domain];
+      }
+
+      if (config) {
+
+        var configParts = config.split('Element');
+        var elementName = configParts[0];
+        var elementIndex = configParts[1];
+
+        return document.querySelectorAll(elementName)[ elementIndex ];
+      }
+    }
 
   }
 
   function getDomain() {
 
     return getUrlParts()[0];
-
-  }
-
-  function getSearchBoxType() {
-
-    var domain = getDomain();
-
-    var searchBoxTypes = searchBoxTypesConfig;
-
-    for (boxType in searchBoxTypes) {
-
-      if (searchBoxTypes[boxType].includes(domain)) {
-
-        return boxType;
-      }
-    }
-
-    return 'textInput1';
 
   }
 
@@ -159,37 +201,21 @@
 
   }
 
-  function isControlledByDelegate() {
+  function guessSearchElement() {
 
-    return domainsControlledByDelegate.includes(getDomain());
+    var searchElement = document.querySelector('input[type=search]');
 
-  }
-
-  function getSearchDelegate() {
-
-    var delegateTypeParts = getSearchDelegateType().split('Delegate');
-
-    var delegateType = delegateTypeParts[0];
-    var delegateIndex = delegateTypeParts[1];
-
-    return document.querySelectorAll(delegateType)[ delegateIndex - 1 ];
-
-  }
-
-  function getSearchDelegateType() {
-
-    var domain = getDomain();
-    var delegateTypes = delegateTypesConfig;
-
-    for (delegateType in delegateTypes) {
-
-      if (delegateTypes[delegateType].includes(domain)) {
-
-        return delegateType;
-      }
+    if (!searchElement) {
+      searchElement = document.querySelector('input[type=text]');
     }
 
-    return 'buttonDelegate1';
+    return searchElement;
+
+  }
+
+  function getCurrentPath() {
+
+    return window.location.pathname !== '/' ? window.location.pathname : '';
   }
 
 })();

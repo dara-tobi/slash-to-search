@@ -6,3 +6,26 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     });
   }
 });
+
+
+chrome.contextMenus.create({
+  contexts: ['editable'],
+  title: 'Add this search box',
+});
+
+chrome.contextMenus.create({
+  contexts: ['link', 'page'],
+  title: 'Add this search box trigger',
+});
+
+
+chrome.contextMenus.onClicked.addListener(function (info, tab) {
+
+  chrome.tabs.sendMessage(tab.id, {
+    message: 'configureActiveElement'
+  }, function() {
+    if (chrome.runtime.lastError) {
+      // log chrome.runtime.lastError if ever necessary
+    }
+  });
+})
