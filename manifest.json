@@ -7,7 +7,7 @@
       "default_popup": "popup/popup.html"
   },
   "content_scripts": [{
-      "js": [ "scripts/index.js", "scripts/searchBoxTypesConfig.js" ],
+      "js": [ "scripts/index.js" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_start"
   }],
@@ -17,7 +17,6 @@
   },
   "manifest_version": 2,
   "name": "Slash to search",
-  "offline_enabled": true,
   "permissions": [ "activeTab", "storage", "contextMenus" ],
   "short_name": "Slash to search",
   "version": "0.0.4.0"
