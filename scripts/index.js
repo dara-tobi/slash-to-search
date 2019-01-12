@@ -72,6 +72,9 @@
       var searchConfigText = `${activeElementName}Element${elementIndex}`;
       var domain = getDomain();
 
+      var currentPath = getCurrentPath();
+      var pathConfig = domain + currentPath;
+
 
       chrome.storage.sync.get('configs', function (res) {
 
@@ -81,8 +84,8 @@
           configs = {};
         }
 
-        if (!configs[domain] || configs[domain] !== searchConfigText) {
-          configs[domain] = searchConfigText;
+        if (!configs[pathConfig] || configs[pathConfig] !== searchConfigText) {
+          configs[pathConfig] = searchConfigText;
         }
 
         chrome.storage.sync.set({configs: configs}, function() {});
@@ -94,17 +97,9 @@
 
   function setFocus(shouldClearPreviousText = null) {
 
-    var domain = getDomain();
+    chrome.storage.sync.get('configs', function (savedConfigs) {
 
-    chrome.storage.sync.get('configs', function (res) {
-
-      if (res.configs) {
-        if (res.configs[domain]) {
-
-          var searchElement = getSearchElement(res.configs[domain]);
-        }
-
-      }
+      var searchElement = getSearchElement(savedConfigs);
 
       if (!searchElement) {
         var searchElement = guessSearchElement();
@@ -154,13 +149,31 @@
     return false;
   }
 
-  function getSearchElement(config) {
+  function getSearchElement(savedConfigs) {
 
-    var configParts = config.split('Element');
-    var elementName = configParts[0];
-    var elementIndex = configParts[1];
+    var domain = getDomain();
+    var currentPath = domain + getCurrentPath();
 
-    return document.querySelectorAll(elementName)[ elementIndex ];
+    if (savedConfigs.configs) {
+
+      // if path is configured, and we're currently on the path, use path config
+      // if not, use domain config
+      if (savedConfigs.configs[currentPath]) {
+        var config = savedConfigs.configs[currentPath];
+
+      } else if (savedConfigs.configs[domain]) {
+        var config = savedConfigs.configs[domain];
+      }
+
+      if (config) {
+
+        var configParts = config.split('Element');
+        var elementName = configParts[0];
+        var elementIndex = configParts[1];
+
+        return document.querySelectorAll(elementName)[ elementIndex ];
+      }
+    }
 
   }
 
@@ -195,6 +208,11 @@
 
     return searchElement;
 
+  }
+
+  function getCurrentPath() {
+
+    return window.location.pathname !== '/' ? window.location.pathname : '';
   }
 
 })();
