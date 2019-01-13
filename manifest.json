@@ -17,7 +17,7 @@
   },
   "manifest_version": 2,
   "name": "Slash to search",
-  "permissions": [ "activeTab", "storage", "contextMenus" ],
+  "permissions": [ "activeTab", "storage", "menus" ],
   "short_name": "Slash to search",
   "version": "0.0.4.0"
 }

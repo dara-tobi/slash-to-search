@@ -66,7 +66,7 @@
 
     if (request.message === 'configureActiveElement') {
 
-      var activeElement = document.activeElement;
+      var activeElement = browser.menus.getTargetElement(request.targetElementId);
       var activeElementName = activeElement.nodeName.toLowerCase();
 
       var matchingElements = Array.from(document.querySelectorAll(activeElementName));

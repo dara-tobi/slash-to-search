@@ -8,24 +8,22 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 });
 
 
-chrome.contextMenus.create({
+chrome.menus.create({
   contexts: ['editable'],
   title: 'Add this search box',
+  onclick: sendClickedMessage
 });
 
-chrome.contextMenus.create({
-  contexts: ['link', 'page'],
-  title: 'Add this search box trigger',
+chrome.menus.create({
+  contexts: ["link", "page"],
+  title: "Add this search box trigger",
+  onclick: sendClickedMessage
 });
 
 
-chrome.contextMenus.onClicked.addListener(function (info, tab) {
-
+function sendClickedMessage(info, tab) {
   chrome.tabs.sendMessage(tab.id, {
-    message: 'configureActiveElement'
-  }, function() {
-    if (chrome.runtime.lastError) {
-      // log chrome.runtime.lastError if ever necessary
-    }
+    message: 'configureActiveElement',
+    targetElementId: info.targetElementId,
   });
-})
+}
