@@ -102,17 +102,9 @@
 
     chrome.storage.local.get('configs', function (savedConfigs) {
 
-      var searchElement = getSearchElement(savedConfigs);
+      var searchElement = guessSearchElement(savedConfigs);
 
-      if (!searchElement) {
-        var searchElement = guessSearchElement();
-      }
-
-      if (
-        searchElement && searchElement.outerHTML
-        // Attempt to see if the selected input element is intended for searching
-        && searchElement.outerHTML.toLowerCase().includes('search')
-      ) {
+      if (searchElement) {
 
         if (searchElement.nodeName.toLowerCase() === 'input') {
 
@@ -152,7 +144,7 @@
     return false;
   }
 
-  function getSearchElement(savedConfigs) {
+  function getConfiguredSearchElement(savedConfigs) {
 
     var domain = getDomain();
     var currentPath = domain + getCurrentPath();
@@ -201,12 +193,47 @@
 
   }
 
-  function guessSearchElement() {
+  // If you must change this, be very very sure...
+  function guessSearchElement(savedConfigs) {
 
-    var searchElement = document.querySelector('input[type=search]');
+    var configuredElement = getConfiguredSearchElement(savedConfigs);
 
-    if (!searchElement) {
-      searchElement = document.querySelector('input[type=text]');
+    if (
+      configuredElement
+      && configuredElement.nodeName.toLowerCase() === 'input'
+    ) {
+
+      return configuredElement;
+    }
+
+    var searchElement;
+    var hiddenSearchExists;
+
+    var inputs = document.querySelectorAll('input');
+
+    for (var i = 0; i < inputs.length; i++) {
+
+      if (
+        inputs[i].outerHTML
+        // Attempt to see if the selected input element is intended for searching
+        && inputs[i].outerHTML.toLowerCase().includes('search')
+      ) {
+        hiddenSearchExists = pageHasHiddenSearch(inputs, i);
+
+        if (configuredElement && hiddenSearchExists) {
+
+          return configuredElement;
+        }
+
+        if (
+          inputs[i].offsetWidth > 0
+          && inputs[i].offsetHeight > 0
+        ) {
+
+          searchElement = inputs[i];
+          break;
+        }
+      }
     }
 
     return searchElement;
@@ -216,6 +243,27 @@
   function getCurrentPath() {
 
     return window.location.pathname !== '/' ? window.location.pathname : '';
+  }
+
+  // You must be very sure before you change this too
+  function pageHasHiddenSearch(inputs, i) {
+    if (inputs[i].offsetHeight === 0 || inputs[i].offsetWidth === 0) {
+      // Some sites have a sort of shadow input at one index, with the real input and the next index
+      // Ensure that those sites aren't falsely reported as having hidden searches
+      if (
+        inputs[i + 1]
+        && inputs[i].id === inputs[i + 1].id
+        && inputs[i].className === inputs[i + 1].className
+      ) {
+        if (inputs[i + 1].offsetHeight !== 0 && inputs[i + 1].offsetWidth !== 0) {
+          // No hidden search detected
+          return false;
+        }
+      } else {
+        // Hidden search detected
+        return true;
+      }
+    }
   }
 
 })();
