@@ -18,6 +18,10 @@
   "manifest_version": 2,
   "name": "Slash to search",
   "offline_enabled": true,
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
   "permissions": [ "activeTab", "storage", "contextMenus" ],
   "short_name": "Slash to search",
   "version": "0.0.4.1"
