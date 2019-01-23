@@ -44,32 +44,21 @@
     optionClearPrevious.addEventListener('change', updateOptions);
   }
 
-  function updateOptions() {
+  function updateOptions(e) {
 
-    if (optionEnabled && optionEnabled.checked) {
-      var isEnabled = true;
+    var updatedList;
+    var shouldAdd;
 
-      // slash to search is now enabled
-    } else {
-      // slash to search is disabled
-      if (optionAutofocus) {
-        optionAutofocus.checked = false;
-      }
-    }
-
-
-    if (optionAutofocus && optionAutofocus.checked) {
-      var isAutofocus = true;
-
-      // Autofocus is now enabled
-    } else {
-      // Autofocus is disabled
-    }
-
-    if (optionClearPrevious && optionClearPrevious.checked) {
-      var shouldClearPrevious = true;
-
-      // 'Clear previous' is now enabled
+    switch (e.target.id) {
+      case 'optionEnabled':
+        updatedList = 'disabledSites';
+        break;
+      case 'optionAutofocus':
+        updatedList = 'autofocusSites';
+        break;
+      case 'optionClearPrevious':
+        updatedList = 'clearPreviousSites';
+        break;
     }
 
 
@@ -77,55 +66,34 @@
       var url = tab[0].url;
       var domain = url.split('//')[1].split('/')[0];
 
+      chrome.storage.local.get([updatedList], function(sites) {
+        var list = sites[updatedList];
 
-      chrome.storage.local.get(['disabledSites', 'autofocusSites', 'clearPreviousSites'], function(sites) {
-
-        var disabledSites = [];
-        var autofocusSites = [];
-        var clearPreviousSites = []
-
-        if (sites.disabledSites) {
-          disabledSites = sites.disabledSites;
+        if (!list) {
+          list = [];
         }
 
-        if (sites.autofocusSites) {
-          autofocusSites = sites.autofocusSites;
-        }
+        if (updatedList === 'disabledSites') {
+          shouldAdd = !e.target.checked;
 
-        if (sites.clearPreviousSites) {
-          clearPreviousSites = sites.clearPreviousSites;
-        }
-
-        if (!isEnabled && !disabledSites.includes(domain)) {
-          // disabling slash to search for domain
-          disabledSites.push(domain);
         } else {
-          // enabling slash to search for domain
-          var domainIndex = disabledSites.indexOf(domain);
-          disabledSites.splice(domainIndex, 1);
+          shouldAdd = e.target.checked;
         }
 
-        if (isAutofocus && !disabledSites.includes(domain)) {
-          // enabling autofocus for domain
-          autofocusSites.push(domain);
+        if (shouldAdd) {
+          if (!list.includes(domain)) {
+            list.push(domain);
+          }
         } else {
-          // disabling autofocus for domain
-          autofocusSites.splice(domainIndex, 1);
-        }
-
-        if (shouldClearPrevious && !clearPreviousSites.includes(domain)) {
-          // enabling autofocus for domain
-          clearPreviousSites.push(domain);
-        } else {
-          // disabling autofocus for domain
-          clearPreviousSites.splice(domainIndex, 1);
+          if (list.includes(domain)) {
+            var domainIndex = list.indexOf(domain);
+            list.splice(domainIndex, 1);
+          }
         }
 
 
         chrome.storage.local.set({
-          disabledSites: disabledSites,
-          autofocusSites: autofocusSites,
-          clearPreviousSites: clearPreviousSites
+          [updatedList]: list
         }, function() {
 
         });

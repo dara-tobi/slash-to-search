@@ -1,0 +1,32 @@
+body {
+    font-family: sans-serif;
+}
+
+button {
+    color: white;
+    font-weight: bolder;
+    font-size: 1.2em;
+    border: 2px solid white;
+    border-radius: 4px;
+}
+
+input {
+    border-radius: 2px;
+    border: 1px solid silver;
+    padding: 5px;
+    margin-right: 2px;
+}
+.new-option {
+    background: #238923;
+}
+.delete-option-button {
+    background: #d92323;
+}
+
+.site-options {
+    padding-left: 20px;
+}
+
+input.has-error {
+    background: pink;
+}

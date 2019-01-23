@@ -7,11 +7,13 @@
       if (request.message === 'pageLoaded') {
         if (pageHasSearchOrTextInputTypes()) {
 
-          chrome.storage.local.get(['disabledSites', 'autofocusSites', 'clearPreviousSites'], function(sites) {
+          chrome.storage.local.get(['disabledSites', 'autofocusSites', 'clearPreviousSites', 'configs'], function(sites) {
 
             var disabledSites = sites.disabledSites || [];
             var autofocusSites = sites.autofocusSites || [];
             var clearPreviousSites = sites.clearPreviousSites || [];
+
+            var searchElement = guessSearchElement(sites);
 
             var domain = getDomain();
 
@@ -28,7 +30,14 @@
             }
 
             if (clearPreviousSites.includes(domain)) {
+
               var shouldClearPreviousText = true;
+
+              if (searchElement) {
+                searchElement.addEventListener('focus', function(e) {
+                  e.target.value = '';
+                });
+              }
             }
 
             // add slash key shortcut, regardless of autofocus

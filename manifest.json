@@ -18,6 +18,10 @@
   "manifest_version": 2,
   "name": "Slash to search",
   "permissions": [ "activeTab", "storage", "menus" ],
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
   "short_name": "Slash to search",
   "version": "0.0.4.1"
 }
