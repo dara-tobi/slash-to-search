@@ -93,6 +93,10 @@ function newOptionClickEventHandler(e) {
 
     var domainList = config[listType];
 
+    if (!domainList) {
+      domainList = [];
+    }
+
     if (!domainList.includes(newDomain)) {
 
       domainList.push(newDomain);

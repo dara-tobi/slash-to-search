@@ -115,7 +115,10 @@
 
       if (searchElement) {
 
-        if (searchElement.nodeName.toLowerCase() === 'input') {
+        if (
+            searchElement.nodeName.toLowerCase() === 'input'
+            && (searchElement.type === 'search' || searchElement.type === 'text')
+        ) {
 
           if (shouldClearPreviousText) {
             searchElement.value = '';
@@ -218,7 +221,7 @@
     var searchElement;
     var hiddenSearchExists;
 
-    var inputs = document.querySelectorAll('input');
+    var inputs = document.querySelectorAll('input[type=text], input[type=search]');
 
     for (var i = 0; i < inputs.length; i++) {
 
