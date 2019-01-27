@@ -145,8 +145,9 @@
 
   function pageHasSearchOrTextInputTypes() {
 
-    if (document.querySelector('input[type=text]')
-      || document.querySelector('input[type=search]')) {
+    if (
+      document.querySelector('[class*=search i], [id*=search i]')
+    ) {
       return true;
     }
 
@@ -245,7 +246,7 @@
       }
     }
 
-    return searchElement;
+    return searchElement || configuredElement;
 
   }
 
