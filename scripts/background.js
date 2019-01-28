@@ -7,7 +7,9 @@ chrome.runtime.onInstalled.addListener(function (info) {
         'www.amazon.com',
         'www.jumia.com.ng',
         'www.konga.com',
-        'best.aliexpress.com'
+        'best.aliexpress.com',
+        'www.ebay.com',
+        'www.olx.com.ng'
       ]
     });
   }
