@@ -146,7 +146,12 @@
   function pageHasSearchOrTextInputTypes() {
 
     if (
-      document.querySelector('[class*=search i], [id*=search i]')
+      document.querySelector(
+        `[class*=search i],
+        [id*=search i],
+        input[type=text],
+        input[type=search]`
+      )
     ) {
       return true;
     }
