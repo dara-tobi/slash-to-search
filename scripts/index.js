@@ -1,6 +1,10 @@
 // Slash to search
 (function() {
 
+  var activeElement = null;
+
+
+
   chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
 
@@ -63,6 +67,15 @@
               }
             });
           });
+
+
+          document.addEventListener('mousedown', function (e) {
+
+            if (e.button === 2) {
+              activeElement = e.target;
+            }
+          });
+
         }
       }
   });
@@ -72,7 +85,6 @@
 
     if (request.message === 'configureActiveElement') {
 
-      var activeElement = document.activeElement;
       var activeElementName = activeElement.nodeName.toLowerCase();
 
       var matchingElements = Array.from(document.querySelectorAll(activeElementName));
