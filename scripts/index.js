@@ -153,6 +153,8 @@
           && focusAttempts < 2
         ) {
           setFocus(shouldClearPreviousText);
+        } else {
+          focusAttempts = 0;
         }
 
       } else {
