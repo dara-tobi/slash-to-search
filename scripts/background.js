@@ -31,7 +31,7 @@ chrome.contextMenus.create({
 });
 
 chrome.contextMenus.create({
-  contexts: ['link', 'page'],
+  contexts: ['link', 'page', 'image'],
   title: 'Add this search box trigger',
 });
 
