@@ -1,8 +1,7 @@
 // Slash to search
 (function() {
 
-  var activeElement = null;
-
+  var activeElement = null, focusAttempts = 0;
 
 
   chrome.runtime.onMessage.addListener(
@@ -118,6 +117,8 @@
 
   function setFocus(shouldClearPreviousText = null) {
 
+    focusAttempts++;
+
     chrome.storage.sync.get('configs', function (savedConfigs) {
 
       var searchElement = guessSearchElement(savedConfigs);
@@ -145,6 +146,13 @@
 
         } else {
           searchElement.click();
+        }
+
+        if (
+          document.activeElement.nodeName.toLowerCase() !== 'input'
+          && focusAttempts < 2
+        ) {
+          setFocus(shouldClearPreviousText);
         }
 
       } else {
