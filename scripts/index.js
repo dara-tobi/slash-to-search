@@ -268,6 +268,11 @@
         ) {
 
           searchElement = inputs[i];
+
+          if (searchElement.tabIndex && searchElement.tabIndex < 0) {
+            continue;
+          }
+
           break;
         }
       }
