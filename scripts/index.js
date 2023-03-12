@@ -13,6 +13,7 @@
         setFocusOnPageLoad();
           // add slash key shortcut, regardless of autofocus
           document.addEventListener('keyup', e => {
+            var shouldClearPreviousText = false;
 
             var activeElement = document.activeElement;
             var nodeName = activeElement.nodeName.toLowerCase();
@@ -34,7 +35,7 @@
                   var clearPreviousSites = sites.clearPreviousSites || [];
 
                   var searchElements = guessSearchElements(sites);
-                  console.log('searchElements guess', searchElements);
+                  // console.log('searchElements guess', searchElements);
                   var domain = getDomain();
 
                   if (disabledSites.includes(domain)) {
@@ -45,18 +46,13 @@
                   }
 
                   if (autofocusSites.includes(domain) && isDomainHomepage()) {
-                    console.log('autofocusSites', autofocusSites);
+                    // console.log('autofocusSites', autofocusSites);
                     // auto is on for this domain, setting focus
                     setFocus(searchElements);
                   }
 
                   if (clearPreviousSites.includes(domain)) {
-
-                    var shouldClearPreviousText = true;
-                      // .addEventListener('focus', function(e) {
-                      //   e.target.value = '';
-                      // });
-
+                    shouldClearPreviousText = true;
                   }
 
                   setFocus(searchElements, shouldClearPreviousText);
@@ -137,21 +133,21 @@
 
   function setFocus(searchElements, shouldClearPreviousText = null) {
     if (!searchElements) {
-      console.log('no search elements found');
+      // console.log('no search elements found');
       return null;
     }
-    console.log('setFocus', searchElements, shouldClearPreviousText);
+    // console.log('setFocus', searchElements, shouldClearPreviousText);
     if (searchElements) {
       for (var i = 0; i < searchElements.length; i++) {
         var searchElement = searchElements[i];
-        console.log('searchElement', searchElement);
+        // console.log('searchElement', searchElement);
         if (searchElement.nodeName.toLowerCase() === 'path') {
           searchElement = searchElement.parentElement.parentElement;
-          console.log('using grandparent of searchElement', searchElement);
+          // console.log('using grandparent of searchElement', searchElement);
         }
         if (searchElement.nodeName.toLowerCase() === 'svg') {
           searchElement = searchElement.parentElement;
-          console.log('using parent of searchElement', searchElement);
+          // console.log('using parent of searchElement', searchElement);
         }
 
         if (searchElement.nodeName.toLowerCase() === 'input') {
@@ -159,14 +155,18 @@
         } else {
           searchElement.click();
         }
-        console.log('active element', document.activeElement);
+
+        if (shouldClearPreviousText) {
+          searchElement.value = '';
+        }
+        // console.log('active element', document.activeElement);
         // break;
-        console.log('clicked searchElement', searchElement);
+        // console.log('clicked searchElement', searchElement);
         // check if focused element is editable or is a text input or text area
         let focusedElement = document.activeElement;
         let nodeName = focusedElement.nodeName.toLowerCase();
-        console.log('focusedElement', focusedElement);
-        console.log('nodeName', nodeName);
+        // console.log('focusedElement', focusedElement);
+        // console.log('nodeName', nodeName);
         if (
           nodeName === 'textarea'
           || nodeName === 'input'
@@ -177,7 +177,7 @@
           if (focusedElement.getBoundingClientRect().top < 0) {
             window.scrollTo({left: 0, top: focusedElement.getBoundingClientRect().top, behavior: 'smooth'});
           }
-          console.log('focused element is editable', focusedElement);
+          // console.log('focused element is editable', focusedElement);
           return;
         }
       }
@@ -207,7 +207,7 @@
     var currentPath = domain + getCurrentPath();
 
     if (savedConfigs.configs) {
-      console.log('savedConfigs.configs', savedConfigs.configs);
+      // console.log('savedConfigs.configs', savedConfigs.configs);
 
       // if path is configured, and we're currently on the path, use path config
       // if not, use domain config
@@ -265,7 +265,7 @@
   function guessSearchElements(savedConfigs) {
 
     var configuredElements = getConfiguredSearchElements(savedConfigs);
-    console.log('configuredElements', configuredElements);
+    // console.log('configuredElements', configuredElements);
     // if (
     //   configuredElement
     //   && configuredElement.nodeName.toLowerCase() === 'input'
