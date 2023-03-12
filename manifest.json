@@ -1,8 +1,8 @@
 {
   "background": {
-    "scripts": [ "scripts/background.js" ]
+    "service_worker": "scripts/background.js"
   },
-  "browser_action": {
+  "action": {
     "default_icon": "images/slash_to_search.png",
     "default_popup": "popup/popup.html"
   },
@@ -15,14 +15,14 @@
   "icons": {
     "48": "images/slash_to_search.png"
   },
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Slash to search",
   "offline_enabled": true,
   "options_ui": {
     "page": "options/options.html",
     "open_in_tab": true
   },
-  "permissions": [ "activeTab", "storage", "contextMenus" ],
+  "permissions": [ "activeTab", "storage", "contextMenus"],
   "short_name": "Slash to search",
   "version": "0.0.5.5"
 }

@@ -9,7 +9,7 @@
     var url = tab[0].url;
     var domain = url.split('//')[1].split('/')[0];
 
-    chrome.storage.sync.get(['disabledSites', 'autofocusSites', 'clearPreviousSites'], function(sites) {
+    chrome.storage.sync.get(['disabledSites', 'autofocusSites', 'clearPreviousSites', 'configs'], function(sites) {
       if (sites) {
         if (sites.disabledSites && sites.disabledSites.includes(domain)) {
           optionEnabled.checked = false;
@@ -23,6 +23,11 @@
 
         if (sites.clearPreviousSites && sites.clearPreviousSites.includes(domain)) {
           optionClearPrevious.checked = true;
+        }
+
+        if (sites.configs && sites.configs[domain]) {
+          console.log('sites.configs[domain]', sites.configs[domain]);
+          appendClearSettingsButton(domain);
         }
       }
     });
@@ -122,5 +127,31 @@
       containerDiv.appendChild(reloadButton);
     }
 
+  }
+
+  function appendClearSettingsButton(domain) {
+    var clearSettingsButton = document.querySelector('#clear-settings-button');
+
+    if (!clearSettingsButton) {
+      clearSettingsButton = document.createElement('button');
+      clearSettingsButton.textContent = 'Delete configured searches for this site';
+      clearSettingsButton.id = 'clear-settings-button';
+      clearSettingsButton.addEventListener('click', function() {
+        chrome.storage.sync.get(['configs'], function(configs) {
+          delete configs.configs[domain];
+
+          chrome.storage.sync.set({
+            configs: configs.configs
+          }, function() {
+
+          });
+        });
+        chrome.tabs.reload();
+        window.close();
+      });
+
+      var containerDiv = document.querySelector('.container');
+      containerDiv.appendChild(clearSettingsButton);
+    }
   }
 })();

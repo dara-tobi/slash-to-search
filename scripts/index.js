@@ -6,78 +6,77 @@
 
   chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-
+      // set focus on search box when page loads
       if (request.message === 'pageLoaded') {
         if (pageHasSearchOrTextInputTypes()) {
+        // page has search or text input types, setting focus
+        setFocusOnPageLoad();
+          // add slash key shortcut, regardless of autofocus
+          document.addEventListener('keyup', e => {
 
-          chrome.storage.sync.get(['disabledSites', 'autofocusSites', 'clearPreviousSites', 'configs'], function(sites) {
+            var activeElement = document.activeElement;
+            var nodeName = activeElement.nodeName.toLowerCase();
 
-            var disabledSites = sites.disabledSites || [];
-            var autofocusSites = sites.autofocusSites || [];
-            var clearPreviousSites = sites.clearPreviousSites || [];
 
-            var searchElement = guessSearchElement(sites);
+            // Only set focus if the user isn't already inputting text
+            if (
+              nodeName !== 'textarea'
+              && nodeName !== 'input'
+              && activeElement.contentEditable !== true
+              && activeElement.contentEditable !== 'true'
+            ) {
 
-            var domain = getDomain();
+              if (e.key === '/') {
+                chrome.storage.sync.get(['disabledSites', 'autofocusSites', 'clearPreviousSites', 'configs'], function(sites) {
 
-            if (disabledSites.includes(domain)) {
-              // slash is disabled for this domain
-              return null;
-            } else {
-              // slash is enabled for this domain
-            }
+                  var disabledSites = sites.disabledSites || [];
+                  var autofocusSites = sites.autofocusSites || [];
+                  var clearPreviousSites = sites.clearPreviousSites || [];
 
-            if (autofocusSites.includes(domain) && isDomainHomepage()) {
-              // auto is on for this domain, setting focus
-              setFocus();
-            }
+                  var searchElements = guessSearchElements(sites);
+                  console.log('searchElements guess', searchElements);
+                  var domain = getDomain();
 
-            if (clearPreviousSites.includes(domain)) {
+                  if (disabledSites.includes(domain)) {
+                    // slash is disabled for this domain
+                    return null;
+                  } else {
+                    // slash is enabled for this domain
+                  }
 
-              var shouldClearPreviousText = true;
+                  if (autofocusSites.includes(domain) && isDomainHomepage()) {
+                    console.log('autofocusSites', autofocusSites);
+                    // auto is on for this domain, setting focus
+                    setFocus(searchElements);
+                  }
 
-              if (searchElement) {
-                searchElement.addEventListener('focus', function(e) {
-                  e.target.value = '';
-                });
+                  if (clearPreviousSites.includes(domain)) {
+
+                    var shouldClearPreviousText = true;
+                      // .addEventListener('focus', function(e) {
+                      //   e.target.value = '';
+                      // });
+
+                  }
+
+                  setFocus(searchElements, shouldClearPreviousText);
+                })
+                // '/' clicked, setting focus
+
               }
             }
-
-            // add slash key shortcut, regardless of autofocus
-            document.addEventListener('keyup', e => {
-
-              var activeElement = document.activeElement;
-              var nodeName = activeElement.nodeName.toLowerCase();
-
-
-              // Only set focus if the user isn't already inputting text
-              if (
-                nodeName !== 'textarea'
-                && nodeName !== 'input'
-                && activeElement.contentEditable !== true
-                && activeElement.contentEditable !== 'true'
-              ) {
-
-                if (e.key === '/') {
-
-                  // '/' clicked, setting focus
-                  setFocus(shouldClearPreviousText);
-                }
-              }
-            });
           });
+        };
 
+        document.addEventListener('mousedown', function (e) {
+          if (e.button === 2) {
+            activeElement = e.target;
+          }
+        });
 
-          document.addEventListener('mousedown', function (e) {
-
-            if (e.button === 2) {
-              activeElement = e.target;
-            }
-          });
-
-        }
       }
-  });
+    }
+  );
 
 
   chrome.runtime.onMessage.addListener(function (request) {
@@ -91,11 +90,6 @@
 
       var searchConfigText = `${activeElementName}Element${elementIndex}`;
       var domain = getDomain();
-
-      var currentPath = getCurrentPath();
-      var pathConfig = domain + currentPath;
-
-
       chrome.storage.sync.get('configs', function (res) {
 
         var configs = res.configs;
@@ -104,8 +98,16 @@
           configs = {};
         }
 
-        if (!configs[pathConfig] || configs[pathConfig] !== searchConfigText) {
-          configs[pathConfig] = searchConfigText;
+        if (!configs[domain]) {
+          configs[domain] = [searchConfigText];
+        } else {
+          // remove from array if already exists
+          configs[domain] = configs[domain].filter(function (item) {
+            return item !== searchConfigText;
+          });
+
+          // insert at beginning of array
+          configs[domain].unshift(searchConfigText);
         }
 
         chrome.storage.sync.set({configs: configs}, function() {});
@@ -114,55 +116,73 @@
     }
   });
 
+  function setFocusOnPageLoad() {
+    chrome.storage.sync.get(['disabledSites', 'autofocusSites', 'configs'], function(sites) {
+      var disabledSites = sites.disabledSites || [];
+      var autofocusSites = sites.autofocusSites || [];
+      var searchElements = guessSearchElements(sites);
+      var domain = getDomain();
 
-  function setFocus(shouldClearPreviousText = null) {
+      if (disabledSites.includes(domain)) {
+        // slash is disabled for this domain
+        return null;
+      }
 
-    focusAttempts++;
+      if (autofocusSites.includes(domain) && isDomainHomepage()) {
+        // auto is on for this domain, setting focus
+        setFocus(searchElements);
+      }
+    })
+  }
 
-    chrome.storage.sync.get('configs', function (savedConfigs) {
+  function setFocus(searchElements, shouldClearPreviousText = null) {
+    if (!searchElements) {
+      console.log('no search elements found');
+      return null;
+    }
+    console.log('setFocus', searchElements, shouldClearPreviousText);
+    if (searchElements) {
+      for (var i = 0; i < searchElements.length; i++) {
+        var searchElement = searchElements[i];
+        console.log('searchElement', searchElement);
+        if (searchElement.nodeName.toLowerCase() === 'path') {
+          searchElement = searchElement.parentElement.parentElement;
+          console.log('using grandparent of searchElement', searchElement);
+        }
+        if (searchElement.nodeName.toLowerCase() === 'svg') {
+          searchElement = searchElement.parentElement;
+          console.log('using parent of searchElement', searchElement);
+        }
 
-      var searchElement = guessSearchElement(savedConfigs);
-
-      if (searchElement) {
-
-        if (
-            searchElement.nodeName.toLowerCase() === 'input'
-            && (searchElement.type === 'search' || searchElement.type === 'text')
-        ) {
-
-          if (shouldClearPreviousText) {
-            searchElement.value = '';
-          }
-
-
-          var searchBoxValue = searchElement.value;
-          var searchBoxValueLength = searchBoxValue.length || 0;
-
-          // Jump to search box
+        if (searchElement.nodeName.toLowerCase() === 'input') {
           searchElement.focus();
-
-          // Ensure the cursor is at the end of the text
-          searchElement.setSelectionRange(searchBoxValueLength, searchBoxValueLength);
-
         } else {
           searchElement.click();
         }
-
+        console.log('active element', document.activeElement);
+        // break;
+        console.log('clicked searchElement', searchElement);
+        // check if focused element is editable or is a text input or text area
+        let focusedElement = document.activeElement;
+        let nodeName = focusedElement.nodeName.toLowerCase();
+        console.log('focusedElement', focusedElement);
+        console.log('nodeName', nodeName);
         if (
-          document.activeElement.nodeName.toLowerCase() !== 'input'
-          && focusAttempts < 2
+          nodeName === 'textarea'
+          || nodeName === 'input'
+          || focusedElement.contentEditable === true
+          || focusedElement.contentEditable === 'true'
         ) {
-          setFocus(shouldClearPreviousText);
-        } else {
-          focusAttempts = 0;
+          // if input is out of view, scroll to it
+          if (focusedElement.getBoundingClientRect().top < 0) {
+            window.scrollTo({left: 0, top: focusedElement.getBoundingClientRect().top, behavior: 'smooth'});
+          }
+          console.log('focused element is editable', focusedElement);
+          return;
         }
-
-      } else {
-        console.log('Slash to search is not yet configured for this site');
       }
-
-    });
-
+    }
+    console.log('Slash to search is not yet configured for this site');
   }
 
   function pageHasSearchOrTextInputTypes() {
@@ -181,29 +201,40 @@
     return false;
   }
 
-  function getConfiguredSearchElement(savedConfigs) {
+  function getConfiguredSearchElements(savedConfigs) {
 
     var domain = getDomain();
     var currentPath = domain + getCurrentPath();
 
     if (savedConfigs.configs) {
+      console.log('savedConfigs.configs', savedConfigs.configs);
 
       // if path is configured, and we're currently on the path, use path config
       // if not, use domain config
-      if (savedConfigs.configs[currentPath]) {
-        var config = savedConfigs.configs[currentPath];
-
-      } else if (savedConfigs.configs[domain]) {
+      if (savedConfigs.configs[domain]) {
         var config = savedConfigs.configs[domain];
       }
 
       if (config) {
+        let output = [];
+        // for each config, return the elemment name and index
+        config.forEach(function (config) {
+          var configParts = config.split('Element');
+          var elementName = configParts[0];
+          var elementIndex = configParts[1];
 
-        var configParts = config.split('Element');
-        var elementName = configParts[0];
-        var elementIndex = configParts[1];
+          output.push(document.querySelectorAll(elementName)[ elementIndex ]);
+        });
 
-        return document.querySelectorAll(elementName)[ elementIndex ];
+        return output;
+
+
+
+        // var configParts = config.split('Element');
+        // var elementName = configParts[0];
+        // var elementIndex = configParts[1];
+
+        // return document.querySelectorAll(elementName)[ elementIndex ];
       }
     }
 
@@ -231,20 +262,20 @@
   }
 
   // If you must change this, be very very sure...
-  function guessSearchElement(savedConfigs) {
+  function guessSearchElements(savedConfigs) {
 
-    var configuredElement = getConfiguredSearchElement(savedConfigs);
+    var configuredElements = getConfiguredSearchElements(savedConfigs);
+    console.log('configuredElements', configuredElements);
+    // if (
+    //   configuredElement
+    //   && configuredElement.nodeName.toLowerCase() === 'input'
+    // ) {
 
-    if (
-      configuredElement
-      && configuredElement.nodeName.toLowerCase() === 'input'
-    ) {
-
-      return configuredElement;
-    }
+    //   return configuredElement;
+    // }
 
     var searchElement;
-    var hiddenSearchExists;
+    // var hiddenSearchExists;
 
     var inputs = document.querySelectorAll('input[type=text], input[type=search]');
 
@@ -255,12 +286,12 @@
         // Attempt to see if the selected input element is intended for searching
         && inputs[i].outerHTML.toLowerCase().includes('search')
       ) {
-        hiddenSearchExists = pageHasHiddenSearch(inputs, i);
+        // hiddenSearchExists = pageHasHiddenSearch(inputs, i);
 
-        if (configuredElement && hiddenSearchExists) {
+        // if (configuredElement && hiddenSearchExists) {
 
-          return configuredElement;
-        }
+        //   return configuredElement;
+        // }
 
         if (
           inputs[i].offsetWidth > 0
@@ -272,9 +303,21 @@
         }
       }
     }
+    if (!searchElement && configuredElements) {
+      return configuredElements;
+    }
 
-    return searchElement || configuredElement;
+    if (!configuredElements && searchElement) {
 
+      return [searchElement];
+    }
+
+    if (configuredElements && searchElement) {
+
+      return [searchElement, ...configuredElements];
+    }
+
+    return null;
   }
 
   function getCurrentPath() {
