@@ -321,8 +321,7 @@
     }
 
     if (configuredElements && searchElement) {
-
-      return [searchElement, ...configuredElements];
+      return [...configuredElements, searchElement];
     }
 
     return null;
