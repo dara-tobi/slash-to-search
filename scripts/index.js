@@ -217,6 +217,14 @@
 
       if (config) {
         let output = [];
+        if (typeof config === 'string') {
+          // this is a string config from the previous version
+          // convert to array
+          config = [config];
+          // save new array config format back to storage
+          savedConfigs.configs[domain] = config;
+          chrome.storage.sync.set({configs: savedConfigs.configs}, function() {});
+        }
         // for each config, return the elemment name and index
         config.forEach(function (config) {
           var configParts = config.split('Element');
