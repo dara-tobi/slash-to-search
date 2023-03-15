@@ -169,3 +169,27 @@ function submitWithEnterKey(e) {
   }
 
 }
+
+function showSiteConfigs() {
+  chrome.storage.sync.get(['configs'], function (sitesConfig) {
+    var configs = sitesConfig.configs || [];
+    createConfigDiv(configs);
+  });
+}
+
+function createConfigDiv(config) {
+  var div = document.createElement('div');
+  var p = document.createElement('p');
+  p.textContent = JSON.stringify(config);
+  div.appendChild(p);
+  document.querySelector('body').appendChild(div);
+}
+
+function addShowConfigsButton() {
+  var button = document.createElement('button');
+  button.textContent = 'Show Configs';
+  button.addEventListener('click', showSiteConfigs);
+  document.body.appendChild(button);
+}
+
+addShowConfigsButton();

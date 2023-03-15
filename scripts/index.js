@@ -1,20 +1,16 @@
 // Slash to search
 (function() {
 
-  var activeElement = null, focusAttempts = 0;
-
-
+  var activeElement = null;
   chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
       // set focus on search box when page loads
       if (request.message === 'pageLoaded') {
         if (pageHasSearchOrTextInputTypes()) {
-        // page has search or text input types, setting focus
-        setFocusOnPageLoad();
+          // page has search or text input types, setting focus
+          setFocusOnPageLoad();
           // add slash key shortcut, regardless of autofocus
           document.addEventListener('keyup', e => {
-            var shouldClearPreviousText = false;
-
             var activeElement = document.activeElement;
             var nodeName = activeElement.nodeName.toLowerCase();
 
@@ -50,10 +46,7 @@
                     // auto is on for this domain, setting focus
                     setFocus(searchElements);
                   }
-
-                  if (clearPreviousSites.includes(domain)) {
-                    shouldClearPreviousText = true;
-                  }
+                  var shouldClearPreviousText = clearPreviousSites.includes(domain);
 
                   setFocus(searchElements, shouldClearPreviousText);
                 })
@@ -204,7 +197,6 @@
   function getConfiguredSearchElements(savedConfigs) {
 
     var domain = getDomain();
-    var currentPath = domain + getCurrentPath();
 
     if (savedConfigs.configs) {
       // console.log('savedConfigs.configs', savedConfigs.configs);
@@ -235,14 +227,6 @@
         });
 
         return output;
-
-
-
-        // var configParts = config.split('Element');
-        // var elementName = configParts[0];
-        // var elementIndex = configParts[1];
-
-        // return document.querySelectorAll(elementName)[ elementIndex ];
       }
     }
 
@@ -273,17 +257,8 @@
   function guessSearchElements(savedConfigs) {
 
     var configuredElements = getConfiguredSearchElements(savedConfigs);
-    // console.log('configuredElements', configuredElements);
-    // if (
-    //   configuredElement
-    //   && configuredElement.nodeName.toLowerCase() === 'input'
-    // ) {
-
-    //   return configuredElement;
-    // }
 
     var searchElement;
-    // var hiddenSearchExists;
 
     var inputs = document.querySelectorAll('input[type=text], input[type=search]');
 
@@ -294,13 +269,6 @@
         // Attempt to see if the selected input element is intended for searching
         && inputs[i].outerHTML.toLowerCase().includes('search')
       ) {
-        // hiddenSearchExists = pageHasHiddenSearch(inputs, i);
-
-        // if (configuredElement && hiddenSearchExists) {
-
-        //   return configuredElement;
-        // }
-
         if (
           inputs[i].offsetWidth > 0
           && inputs[i].offsetHeight > 0
@@ -328,29 +296,7 @@
   }
 
   function getCurrentPath() {
-
     return window.location.pathname !== '/' ? window.location.pathname : '';
-  }
-
-  // You must be very sure before you change this too
-  function pageHasHiddenSearch(inputs, i) {
-    if (inputs[i].offsetHeight === 0 || inputs[i].offsetWidth === 0) {
-      // Some sites have a sort of shadow input at one index, with the real input and the next index
-      // Ensure that those sites aren't falsely reported as having hidden searches
-      if (
-        inputs[i + 1]
-        && inputs[i].id === inputs[i + 1].id
-        && inputs[i].className === inputs[i + 1].className
-      ) {
-        if (inputs[i + 1].offsetHeight !== 0 && inputs[i + 1].offsetWidth !== 0) {
-          // No hidden search detected
-          return false;
-        }
-      } else {
-        // Hidden search detected
-        return true;
-      }
-    }
   }
 
 })();

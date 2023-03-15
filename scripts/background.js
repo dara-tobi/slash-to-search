@@ -16,20 +16,15 @@ chrome.runtime.onInstalled.addListener(function (info) {
 });
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-
-  // if (changeInfo.status === 'complete') {
-  //   chrome.runtime.sendMessage(tabId, {
-  //     message: 'pageLoaded',
-  //   });
-  // }
-  (async () => {
+  if (changeInfo.status === 'complete') {
     try {
-      const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
-      const response = await chrome.tabs.sendMessage(tab.id, {message: "pageLoaded"});
+      chrome.tabs.sendMessage(tabId, {
+        message: 'pageLoaded',
+      });
     } catch (error) {
       console.log('error', error);
     }
-  })();
+  }
 });
 
 chrome.contextMenus.removeAll(function() {
@@ -50,21 +45,15 @@ chrome.contextMenus.removeAll(function() {
 
 
 chrome.contextMenus.onClicked.addListener(function (info, tab) {
-  (async () => {
-    try {
-      const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
-      const response = await chrome.tabs.sendMessage(tab.id, {message: "configureActiveElement"});
-    } catch (error) {
-      console.log('error', error);
-    }
-
-  })();
-
-  // chrome.runtime.sendMessage(tab.id, {
-  //   message: 'configureActiveElement'
-  // }, function() {
-  //   if (chrome.runtime.lastError) {
-  //     // log chrome.runtime.lastError if ever necessary
-  //   }
-  // });
+  try {
+    chrome.tabs.sendMessage(tab.id, {
+      message: 'configureActiveElement'
+    }, function() {
+      if (chrome.runtime.lastError) {
+        // log chrome.runtime.lastError if ever necessary
+      }
+    });
+  } catch (error) {
+    console.log('error', error);
+  }
 })

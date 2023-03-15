@@ -143,11 +143,10 @@
           chrome.storage.sync.set({
             configs: configs.configs
           }, function() {
-
+            chrome.tabs.reload();
+            window.close();
           });
         });
-        chrome.tabs.reload();
-        window.close();
       });
 
       var containerDiv = document.querySelector('.container');
