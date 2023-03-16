@@ -24,14 +24,12 @@
             ) {
 
               if (e.key === '/') {
-                chrome.storage.sync.get(['disabledSites', 'autofocusSites', 'clearPreviousSites', 'configs'], function(sites) {
+                chrome.storage.sync.get(['disabledSites', 'clearPreviousSites', 'configs'], function(sites) {
 
                   var disabledSites = sites.disabledSites || [];
-                  var autofocusSites = sites.autofocusSites || [];
                   var clearPreviousSites = sites.clearPreviousSites || [];
 
                   var searchElements = guessSearchElements(sites);
-                  // console.log('searchElements guess', searchElements);
                   var domain = getDomain();
 
                   if (disabledSites.includes(domain)) {
@@ -41,17 +39,10 @@
                     // slash is enabled for this domain
                   }
 
-                  if (autofocusSites.includes(domain) && isDomainHomepage()) {
-                    // console.log('autofocusSites', autofocusSites);
-                    // auto is on for this domain, setting focus
-                    setFocus(searchElements);
-                  }
                   var shouldClearPreviousText = clearPreviousSites.includes(domain);
 
                   setFocus(searchElements, shouldClearPreviousText);
                 })
-                // '/' clicked, setting focus
-
               }
             }
           });
@@ -59,6 +50,7 @@
 
         document.addEventListener('mousedown', function (e) {
           if (e.button === 2) {
+            // on right click, set activeElement to the element that was clicked before the context menu appears
             activeElement = e.target;
           }
         });
@@ -71,37 +63,7 @@
   chrome.runtime.onMessage.addListener(function (request) {
 
     if (request.message === 'configureActiveElement') {
-
-      var activeElementName = activeElement.nodeName.toLowerCase();
-
-      var matchingElements = Array.from(document.querySelectorAll(activeElementName));
-      var elementIndex = matchingElements.indexOf(activeElement);
-
-      var searchConfigText = `${activeElementName}Element${elementIndex}`;
-      var domain = getDomain();
-      chrome.storage.sync.get('configs', function (res) {
-
-        var configs = res.configs;
-
-        if (!configs) {
-          configs = {};
-        }
-
-        if (!configs[domain]) {
-          configs[domain] = [searchConfigText];
-        } else {
-          // remove from array if already exists
-          configs[domain] = configs[domain].filter(function (item) {
-            return item !== searchConfigText;
-          });
-
-          // insert at beginning of array
-          configs[domain].unshift(searchConfigText);
-        }
-
-        chrome.storage.sync.set({configs: configs}, function() {});
-
-      });
+      saveDocumentsActiveElementToConfigsForCurrentDomain();
     }
   });
 
@@ -126,21 +88,18 @@
 
   function setFocus(searchElements, shouldClearPreviousText = null) {
     if (!searchElements) {
-      // console.log('no search elements found');
+      console.log('No search elements found');
       return null;
     }
-    // console.log('setFocus', searchElements, shouldClearPreviousText);
+
     if (searchElements) {
       for (var i = 0; i < searchElements.length; i++) {
         var searchElement = searchElements[i];
-        // console.log('searchElement', searchElement);
         if (searchElement.nodeName.toLowerCase() === 'path') {
           searchElement = searchElement.parentElement.parentElement;
-          // console.log('using grandparent of searchElement', searchElement);
         }
         if (searchElement.nodeName.toLowerCase() === 'svg') {
           searchElement = searchElement.parentElement;
-          // console.log('using parent of searchElement', searchElement);
         }
 
         if (searchElement.nodeName.toLowerCase() === 'input') {
@@ -152,14 +111,11 @@
         if (shouldClearPreviousText) {
           searchElement.value = '';
         }
-        // console.log('active element', document.activeElement);
-        // break;
-        // console.log('clicked searchElement', searchElement);
+
         // check if focused element is editable or is a text input or text area
         let focusedElement = document.activeElement;
         let nodeName = focusedElement.nodeName.toLowerCase();
-        // console.log('focusedElement', focusedElement);
-        // console.log('nodeName', nodeName);
+
         if (
           nodeName === 'textarea'
           || nodeName === 'input'
@@ -170,7 +126,7 @@
           if (focusedElement.getBoundingClientRect().top < 0) {
             window.scrollTo({left: 0, top: focusedElement.getBoundingClientRect().top, behavior: 'smooth'});
           }
-          // console.log('focused element is editable', focusedElement);
+
           return;
         }
       }
@@ -185,7 +141,8 @@
         `[class*=search i],
         [id*=search i],
         input[type=text],
-        input[type=search]`
+        input[type=search],
+        [action*=search]`
       )
     ) {
       return true;
@@ -199,10 +156,6 @@
     var domain = getDomain();
 
     if (savedConfigs.configs) {
-      // console.log('savedConfigs.configs', savedConfigs.configs);
-
-      // if path is configured, and we're currently on the path, use path config
-      // if not, use domain config
       if (savedConfigs.configs[domain]) {
         var config = savedConfigs.configs[domain];
       }
@@ -260,21 +213,25 @@
 
     var searchElement;
 
-    var inputs = document.querySelectorAll('input[type=text], input[type=search]');
+    var inputs = document.querySelectorAll('input');
 
     for (var i = 0; i < inputs.length; i++) {
 
       if (
         inputs[i].outerHTML
         // Attempt to see if the selected input element is intended for searching
-        && inputs[i].outerHTML.toLowerCase().includes('search')
+        && (getPossiblePointersThatInputIsASearchBox(inputs[i])
+        )
       ) {
         if (
           inputs[i].offsetWidth > 0
           && inputs[i].offsetHeight > 0
+          && inputs[i].type !== 'submit'
+          && (inputs[i].contentEditable == 'true' || inputs[i].contentEditable == true || inputs[i].outerHTML.includes('search') || inputs[i].name == "q")
         ) {
 
           searchElement = inputs[i];
+          // console.log('search element is', searchElement.outerHTML);
           break;
         }
       }
@@ -295,8 +252,60 @@
     return null;
   }
 
-  function getCurrentPath() {
-    return window.location.pathname !== '/' ? window.location.pathname : '';
+  function saveDocumentsActiveElementToConfigsForCurrentDomain() {
+    if (!activeElement || !activeElement.nodeName) {
+      console.log('The selected element cannot be configured as a search box');
+      return;
+    }
+
+    var activeElementName = activeElement.nodeName.toLowerCase();
+
+    var matchingElements = Array.from(document.querySelectorAll(activeElementName));
+    var elementIndex = matchingElements.indexOf(activeElement);
+
+    var searchConfigText = `${activeElementName}Element${elementIndex}`;
+    var domain = getDomain();
+    chrome.storage.sync.get('configs', function (res) {
+
+      var configs = res.configs;
+
+      if (!configs) {
+        configs = {};
+      }
+
+      if (!configs[domain]) {
+        configs[domain] = [searchConfigText];
+      } else {
+        // remove from array if already exists
+        configs[domain] = configs[domain].filter(function (item) {
+          return item !== searchConfigText;
+        });
+
+        // insert at beginning of array
+        configs[domain].unshift(searchConfigText);
+      }
+
+      chrome.storage.sync.set({configs: configs}, function() {});
+
+    });
   }
 
+  function getPossiblePointersThatInputIsASearchBox(input) {
+
+    return (input.outerHTML.toLowerCase().includes('search')
+      || input.outerHTML.toLowerCase().includes('query')
+      || (input.closest('form') && input.closest('form').outerHTML.toLowerCase().includes('search'))
+      || (input.closest('.search')
+        || input.closest('#search')
+        || input.closest('.query')
+        || input.closest('#query')
+        || input.closest('[class*=search]')
+        || input.closest('[id*=search]')
+        || input.closest('[class*=query]')
+        || input.closest('[id*=query]')
+        || input.closest('#q')
+        || input.closest('.q')
+      )
+    );
+  }
 })();
