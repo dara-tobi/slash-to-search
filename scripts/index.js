@@ -104,6 +104,9 @@
 
         if (searchElement.nodeName.toLowerCase() === 'input') {
           searchElement.focus();
+          // jump cursor to end of input
+          searchElement.setSelectionRange(searchElement.value.length, searchElement.value.length);
+
         } else {
           searchElement.click();
         }
