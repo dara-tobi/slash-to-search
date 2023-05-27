@@ -104,9 +104,6 @@
 
         if (searchElement.nodeName.toLowerCase() === 'input') {
           searchElement.focus();
-          // jump cursor to end of input
-          searchElement.setSelectionRange(searchElement.value.length, searchElement.value.length);
-
         } else {
           searchElement.click();
         }
@@ -129,6 +126,9 @@
           if (focusedElement.getBoundingClientRect().top < 0) {
             window.scrollTo({left: 0, top: focusedElement.getBoundingClientRect().top, behavior: 'smooth'});
           }
+
+          // jump cursor to end of input
+          searchElement.setSelectionRange(searchElement.value.length, searchElement.value.length);
 
           return;
         }
